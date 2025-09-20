@@ -1,0 +1,356 @@
+name: Deploy Smart Contracts and Frontend
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22.19.0'
+
+jobs:
+  # Job 1: Deploy Smart Contracts to Polygon
+  deploy-contracts:
+    name: Deploy Smart Contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15  # Add timeout to prevent infinite hanging
+    outputs:
+      portfolio-address: ${{ steps.deploy.outputs.portfolio-address }}
+      verification-address: ${{ steps.deploy.outputs.verification-address }}
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Pre-deployment Verification
+        run: |
+          echo "🔍 Running codebase verification..."
+          npm run verify:codebase
+          
+      - name: Compile Smart Contracts
+        run: npx hardhat compile
+
+      - name: Deploy to Polygon Mainnet
+        id: deploy
+        env:
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        run: |
+          echo "🚀 Starting deployment to Polygon mainnet..."
+          echo "📅 Timestamp: $(date)"
+          echo "🔗 Network: Polygon (Chain ID: 137)"
+          echo "📊 Node version: $(node --version)"
+          echo "⚙️  Hardhat version: $(npx hardhat --version)"
+          
+          echo "🔍 Checking environment variables..."
+          echo "✅ INFURA_API_KEY: ${INFURA_API_KEY:0:10}..."
+          echo "✅ DEPLOYER_PRIVATE_KEY: ${DEPLOYER_PRIVATE_KEY:0:10}..."
+          echo "✅ WALLET_ADDRESS: $WALLET_ADDRESS"
+          echo "✅ ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY:0:10}..."
+          
+          echo "📡 Testing network connectivity..."
+          curl -s -X POST https://polygon-mainnet.infura.io/v3/$INFURA_API_KEY \
+            -H "Content-Type: application/json" \
+            -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+            | jq '.result' || echo "❌ Network test failed"
+          
+          echo "💰 Checking wallet balance..."
+          npx hardhat run --network polygon -c "
+            const { ethers } = require('hardhat');
+            async function main() {
+              const [deployer] = await ethers.getSigners();
+              const balance = await deployer.getBalance();
+              console.log('💰 Deployer:', deployer.address);
+              console.log('💰 Balance:', ethers.utils.formatEther(balance), 'MATIC');
+              if (balance.lt(ethers.utils.parseEther('0.01'))) {
+                console.log('⚠️  Warning: Low balance! Need at least 0.01 MATIC');
+              }
+            }
+            main();
+          " 2>/dev/null || echo "❌ Balance check failed"
+          
+          echo "🔨 Starting contract deployment..."
+          echo "📝 Deployment log will be saved to deployment_log.txt"
+          
+          # Run deployment with real-time output
+          npx hardhat run scripts/deploy.js --network polygon 2>&1 | tee deployment_log.txt
+          
+          echo "📋 Deployment completed, analyzing results..."
+          echo "📄 Full deployment log:"
+          cat deployment_log.txt
+          
+          # Extract contract addresses from deployment log
+          PORTFOLIO_ADDRESS=$(grep -o "Portfolio deployed to: 0x[a-fA-F0-9]\{40\}" deployment_log.txt | cut -d' ' -f4)
+          VERIFICATION_ADDRESS=$(grep -o "ProjectVerification deployed to: 0x[a-fA-F0-9]\{40\}" deployment_log.txt | cut -d' ' -f4)
+          
+          echo "Portfolio Contract: $PORTFOLIO_ADDRESS"
+          echo "Verification Contract: $VERIFICATION_ADDRESS"
+          
+          echo "portfolio-address=$PORTFOLIO_ADDRESS" >> $GITHUB_OUTPUT
+          echo "verification-address=$VERIFICATION_ADDRESS" >> $GITHUB_OUTPUT
+          
+          # Save to files for verification step
+          echo "$PORTFOLIO_ADDRESS" > portfolio_address.txt
+          echo "$VERIFICATION_ADDRESS" > verification_address.txt
+
+      - name: Verify Contracts on Polygonscan
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        run: |
+          echo "==================== Contract Verification Step ===================="
+          if [ -f portfolio_address.txt ] && [ -f verification_address.txt ]; then
+            PORTFOLIO_ADDRESS=$(cat portfolio_address.txt)
+            VERIFICATION_ADDRESS=$(cat verification_address.txt)
+            echo "Portfolio address file: $PORTFOLIO_ADDRESS"
+            echo "Verification address file: $VERIFICATION_ADDRESS"
+            echo "\n--- Environment ---"
+            echo "ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY:0:10}..."
+            echo "Node version: $(node --version)"
+            echo "Hardhat version: $(npx hardhat --version)"
+            echo "\n--- Verifying Portfolio contract ---"
+            npx hardhat verify --network polygon "$PORTFOLIO_ADDRESS" || {
+              echo "Portfolio verification failed";
+              echo "Last 20 lines of hardhat.log (if exists):";
+              [ -f hardhat.log ] && tail -n 20 hardhat.log;
+            }
+            echo "\n--- Verifying ProjectVerification contract ---"
+            npx hardhat verify --network polygon "$VERIFICATION_ADDRESS" || {
+              echo "Verification contract verification failed";
+              echo "Last 20 lines of hardhat.log (if exists):";
+              [ -f hardhat.log ] && tail -n 20 hardhat.log;
+            }
+            echo "==================== Verification Step Complete ===================="
+          else
+            echo "❌ Address files not found. Skipping verification."
+            ls -l
+          fi
+
+      - name: Store Verification Data on Blockchain
+        env:
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          VERIFICATION_CONTRACT_ADDRESS: ${{ steps.deploy.outputs.verification-address }}
+        run: |
+          if [ -f verification-report.json ]; then
+            echo "📝 Storing verification data on blockchain..."
+            npm run verify:store
+          else
+            echo "⚠️ No verification report found, skipping blockchain storage"
+          fi
+
+      - name: Upload Contract Addresses Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-addresses
+          path: |
+            portfolio_address.txt
+            verification_address.txt
+            deployment_log.txt
+
+  # Job 2: Update Frontend Configuration
+  update-frontend:
+    name: Update Frontend Configuration
+    runs-on: ubuntu-latest
+    needs: deploy-contracts
+    if: needs.deploy-contracts.outputs.portfolio-address != ''
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Contract Addresses
+        uses: actions/download-artifact@v4
+        with:
+          name: contract-addresses
+
+      - name: Update Frontend Config
+        env:
+          PORTFOLIO_ADDRESS: ${{ needs.deploy-contracts.outputs.portfolio-address }}
+          VERIFICATION_ADDRESS: ${{ needs.deploy-contracts.outputs.verification-address }}
+          WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
+        run: |
+          echo "Updating frontend configuration..."
+          
+          # Create/update config file for frontend
+          cat > src/config/contracts.json << EOF
+          {
+            "portfolioContract": "$PORTFOLIO_ADDRESS",
+            "verificationContract": "$VERIFICATION_ADDRESS",
+            "walletAddress": "$WALLET_ADDRESS",
+            "network": "polygon",
+            "chainId": 137,
+            "rpcUrl": "https://polygon-mainnet.infura.io/v3/${{ secrets.INFURA_API_KEY }}",
+            "explorerUrl": "https://polygonscan.com",
+            "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          
+          echo "Contract addresses updated:"
+          echo "Portfolio: $PORTFOLIO_ADDRESS"
+          echo "Verification: $VERIFICATION_ADDRESS"
+          cat src/config/contracts.json
+
+      - name: Update Environment Constants
+        env:
+          PORTFOLIO_ADDRESS: ${{ needs.deploy-contracts.outputs.portfolio-address }}
+          VERIFICATION_ADDRESS: ${{ needs.deploy-contracts.outputs.verification-address }}
+          WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
+        run: |
+          # Update constants file
+          cat > src/utils/contractConstants.js << EOF
+          // Auto-generated contract configuration - DO NOT EDIT MANUALLY
+          // Last updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          
+          export const CONTRACT_CONFIG = {
+            PORTFOLIO_ADDRESS: '$PORTFOLIO_ADDRESS',
+            VERIFICATION_ADDRESS: '$VERIFICATION_ADDRESS', 
+            WALLET_ADDRESS: '$WALLET_ADDRESS',
+            NETWORK: 'polygon',
+            CHAIN_ID: 137,
+            RPC_URL: 'https://polygon-rpc.com',
+            EXPLORER_URL: 'https://polygonscan.com'
+          };
+          
+          export const NETWORK_CONFIG = {
+            137: {
+              name: 'Polygon Mainnet',
+              currency: 'MATIC',
+              explorerUrl: 'https://polygonscan.com',
+              rpcUrl: 'https://polygon-rpc.com'
+            }
+          };
+          EOF
+
+      - name: Commit Contract Address Updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add src/config/contracts.json src/utils/contractConstants.js
+            git commit -m "🚀 Update contract addresses after deployment
+            
+            Portfolio: ${{ needs.deploy-contracts.outputs.portfolio-address }}
+            Verification: ${{ needs.deploy-contracts.outputs.verification-address }}
+            
+            Auto-generated by GitHub Actions"
+            git push
+          fi
+
+      - name: Upload Updated Config Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-frontend-config
+          path: |
+            src/config/contracts.json
+            src/utils/contractConstants.js
+
+  # Job 3: Deploy to Netlify
+  deploy-frontend:
+    name: Deploy Frontend to Netlify
+    runs-on: ubuntu-latest
+    needs: [deploy-contracts, update-frontend]
+    if: always() && (needs.deploy-contracts.result == 'success')
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Updated Config
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-frontend-config
+          path: src/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Frontend
+        env:
+          VITE_CONTRACT_ADDRESS: ${{ needs.deploy-contracts.outputs.portfolio-address }}
+          VITE_VERIFICATION_ADDRESS: ${{ needs.deploy-contracts.outputs.verification-address }}
+          VITE_WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
+          VITE_NETWORK_ID: 137
+          VITE_NETWORK_NAME: Polygon
+          VITE_RPC_URL: https://polygon-rpc.com
+          VITE_POLYGONSCAN_BASE_URL: https://polygonscan.com/address/
+          VITE_APP_NAME: "Deepak's Portfolio"
+          VITE_ENVIRONMENT: production
+        run: |
+          echo "Building frontend with contract addresses..."
+          npm run build
+          
+          # Verify build output
+          ls -la dist/
+          echo "Build completed successfully"
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './dist'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions - Contracts: ${{ needs.deploy-contracts.outputs.portfolio-address }}"
+          enable-pull-request-comment: false
+          enable-commit-comment: true
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Post-deployment Verification
+        env:
+          PORTFOLIO_ADDRESS: ${{ needs.deploy-contracts.outputs.portfolio-address }}
+          VERIFICATION_ADDRESS: ${{ needs.deploy-contracts.outputs.verification-address }}
+        run: |
+          echo "🚀 Deployment Summary:"
+          echo "Portfolio Contract: $PORTFOLIO_ADDRESS"
+          echo "Verification Contract: $VERIFICATION_ADDRESS"
+          echo "Frontend deployed to Netlify"
+          echo "Polygon Explorer: https://polygonscan.com/address/$PORTFOLIO_ADDRESS"
+
+  # Job 4: Notify Deployment Status
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-contracts, update-frontend, deploy-frontend]
+    if: always()
+
+    steps:
+      - name: Deployment Success Notification
+        if: needs.deploy-contracts.result == 'success' && needs.deploy-frontend.result == 'success'
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "Portfolio Contract: ${{ needs.deploy-contracts.outputs.portfolio-address }}"
+          echo "Verification Contract: ${{ needs.deploy-contracts.outputs.verification-address }}"
+          echo "Check the live site and verify contract functionality."
+
+      - name: Deployment Failure Notification  
+        if: needs.deploy-contracts.result == 'failure' || needs.deploy-frontend.result == 'failure'
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Please check the logs and fix any issues."
+          exit 1

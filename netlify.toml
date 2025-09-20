@@ -1,0 +1,54 @@
+[build]
+  # Directory to publish
+  publish = "dist"
+  
+  # Build command
+  command = "npm run build"
+
+[build.environment]
+  # Node version
+  NODE_VERSION = "22.19.0"
+  
+  # Build-time environment variables will be set via Netlify UI
+  # These are just documentation of what's needed:
+  # VITE_CONTRACT_ADDRESS - Portfolio contract address (set after deployment)
+  # VITE_VERIFICATION_ADDRESS - Verification contract address (set after deployment)
+  # VITE_WALLET_ADDRESS - Deployer wallet address
+  # VITE_NETWORK_ID - 137 for Polygon
+  # VITE_NETWORK_NAME - "Polygon"
+  # VITE_RPC_URL - Polygon RPC URL
+  # VITE_POLYGONSCAN_BASE_URL - "https://polygonscan.com/address/"
+  # VITE_APP_NAME - "Deepak's Portfolio"
+  # VITE_ENVIRONMENT - "production"
+
+# Redirect rules for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://polygon-rpc.com https://polygonscan.com https://*.infura.io wss://*.infura.io;"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Environment-specific redirects
+[context.production.environment]
+  VITE_ENVIRONMENT = "production"
+
+[context.deploy-preview.environment]
+  VITE_ENVIRONMENT = "preview"
+
+[context.branch-deploy.environment]
+  VITE_ENVIRONMENT = "development"

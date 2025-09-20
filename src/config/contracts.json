@@ -1,0 +1,11 @@
+{
+  "portfolioContract": "0x0000000000000000000000000000000000000000",
+  "verificationContract": "0x0000000000000000000000000000000000000000", 
+  "walletAddress": "0x0000000000000000000000000000000000000000",
+  "network": "ganache",
+  "chainId": 1337,
+  "rpcUrl": "http://127.0.0.1:7545",
+  "explorerUrl": "http://localhost:7545",
+  "lastUpdated": "2025-09-19T00:00:00Z",
+  "environment": "development"
+}
