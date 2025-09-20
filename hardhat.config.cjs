@@ -29,6 +29,7 @@ function getPrivateKey() {
   console.warn("   1. Set DEPLOYER_PRIVATE_KEY in GitHub Secrets");
   console.warn("   2. Set INFURA_API_KEY in GitHub Secrets"); 
   console.warn("   3. Set WALLET_ADDRESS in GitHub Secrets");
+  console.warn("   4. Set ETHERSCAN_API_KEY (multichain) in GitHub Secrets");
   return [];
 }
 
@@ -115,22 +116,112 @@ const config = {
       accounts: getPrivateKey(),
       chainId: 11155111,
     },
+    // Ethereum Mainnet
+    mainnet: {
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: getPrivateKey(),
+      chainId: 1,
+    },
+    // Arbitrum One
+    arbitrum: {
+      url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: getPrivateKey(),
+      chainId: 42161,
+    },
+    // Optimism
+    optimism: {
+      url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: getPrivateKey(),
+      chainId: 10,
+    },
+    // Base
+    base: {
+      url: `https://base-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: getPrivateKey(),
+      chainId: 8453,
+    },
   },
   etherscan: {
     apiKey: {
+      // Use single Etherscan multichain API key for all networks
+      mainnet: process.env.ETHERSCAN_API_KEY,
+      sepolia: process.env.ETHERSCAN_API_KEY,
       polygon: process.env.ETHERSCAN_API_KEY,
       polygonMumbai: process.env.ETHERSCAN_API_KEY,
-      sepolia: process.env.ETHERSCAN_API_KEY,
+      arbitrumOne: process.env.ETHERSCAN_API_KEY,
+      optimisticEthereum: process.env.ETHERSCAN_API_KEY,
+      base: process.env.ETHERSCAN_API_KEY,
     },
-  },
-  polygonscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    customChains: [
+      {
+        network: "polygon",
+        chainId: 137,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=137",
+          browserURL: "https://polygonscan.com"
+        }
+      },
+      {
+        network: "polygonMumbai", 
+        chainId: 80001,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=80001",
+          browserURL: "https://mumbai.polygonscan.com"
+        }
+      },
+      {
+        network: "arbitrumOne",
+        chainId: 42161,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=42161",
+          browserURL: "https://arbiscan.io"
+        }
+      },
+      {
+        network: "optimisticEthereum",
+        chainId: 10,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=10",
+          browserURL: "https://optimistic.etherscan.io"
+        }
+      },
+      {
+        network: "base",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=8453",
+          browserURL: "https://basescan.org"
+        }
+      },
+      {
+        network: "mainnet",
+        chainId: 1,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=1",
+          browserURL: "https://etherscan.io"
+        }
+      },
+      {
+        network: "sepolia",
+        chainId: 11155111,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=11155111",
+          browserURL: "https://sepolia.etherscan.io"
+        }
+      }
+    ]
   },
   // Gas reporting
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
   },
+  // Contract size limit
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: true,
+    disambiguatePaths: false,
+  }
 };
 
 // Add Ganache network configuration only if environment variables are available
