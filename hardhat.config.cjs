@@ -63,9 +63,7 @@ function getPolygonConfig() {
     url: polygonRpcUrl || "https://polygon-rpc.com",
     accounts: getPrivateKey(),
     chainId: 137,
-    // --- THIS IS THE FIX ---
-    gasPrice: 'auto', // Let Hardhat determine the best gas price
-    // -----------------------
+    // REMOVE the gasPrice line entirely.
     confirmations: 2,
     timeoutBlocks: 200,
     skipDryRun: true
