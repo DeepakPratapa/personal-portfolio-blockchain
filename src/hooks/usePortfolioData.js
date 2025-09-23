@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import PortfolioContract from "../../artifacts/contracts/Portfolio.sol/Portfolio.json";
 import ProjectVerificationContract from "../../artifacts/contracts/ProjectVerification.sol/ProjectVerification.json";
 import { BLOCKCHAIN_CONFIG, SKILL_CATEGORIES } from '../utils/constants';
-import { CONTRACT_CONFIG } from '../utils/contractConstants';
+import { CONTRACT_ADDRESSES } from '../utils/contractConstants';
 import { getContractAddress } from '../utils/envValidation';
 
 /**
@@ -113,7 +113,8 @@ export const usePortfolioData = () => {
       setLoading(true);
       setError(null);
 
-      const contractAddress = getContractAddress();
+  // Use the portfolio contract address from constants
+  const contractAddress = CONTRACT_ADDRESSES.PORTFOLIO;
       const provider = new ethers.JsonRpcProvider(BLOCKCHAIN_CONFIG.RPC_URL);
       const contract = new ethers.Contract(contractAddress, PortfolioContract.abi, provider);
 

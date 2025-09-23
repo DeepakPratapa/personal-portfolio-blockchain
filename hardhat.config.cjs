@@ -142,73 +142,17 @@ const config = {
     },
   },
   etherscan: {
-    apiKey: {
-      // Use single Etherscan multichain API key for all networks
-      mainnet: process.env.ETHERSCAN_API_KEY,
-      sepolia: process.env.ETHERSCAN_API_KEY,
-      polygon: process.env.ETHERSCAN_API_KEY,
-      polygonMumbai: process.env.ETHERSCAN_API_KEY,
-      arbitrumOne: process.env.ETHERSCAN_API_KEY,
-      optimisticEthereum: process.env.ETHERSCAN_API_KEY,
-      base: process.env.ETHERSCAN_API_KEY,
-    },
+    apiKey: process.env.ETHERSCAN_API_KEY, // Single key for all networks (Etherscan v2)
     customChains: [
       {
         network: "polygon",
         chainId: 137,
         urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=137",
+          apiURL: "https://api.etherscan.io/v2/api",
           browserURL: "https://polygonscan.com"
         }
       },
-      {
-        network: "polygonMumbai", 
-        chainId: 80001,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=80001",
-          browserURL: "https://mumbai.polygonscan.com"
-        }
-      },
-      {
-        network: "arbitrumOne",
-        chainId: 42161,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=42161",
-          browserURL: "https://arbiscan.io"
-        }
-      },
-      {
-        network: "optimisticEthereum",
-        chainId: 10,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=10",
-          browserURL: "https://optimistic.etherscan.io"
-        }
-      },
-      {
-        network: "base",
-        chainId: 8453,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=8453",
-          browserURL: "https://basescan.org"
-        }
-      },
-      {
-        network: "mainnet",
-        chainId: 1,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=1",
-          browserURL: "https://etherscan.io"
-        }
-      },
-      {
-        network: "sepolia",
-        chainId: 11155111,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=11155111",
-          browserURL: "https://sepolia.etherscan.io"
-        }
-      }
+
     ]
   },
   // Gas reporting
