@@ -1,15 +1,31 @@
 import pkg from 'hardhat';
 const { ethers } = pkg;
 
-// Helper function to execute and log transactions without changing any data
+// Updated helper function with retry logic for nonce errors
 async function executeTransaction(txPromise, description) {
-  console.log(`\nSubmitting transaction for: ${description}...`);
-  const tx = await txPromise;
-  console.log(`... Transaction Hash: ${tx.hash}`);
-  console.log(`⏳ Waiting for confirmation...`);
-  await tx.wait(1); // Wait for 1 block confirmation
-  console.log(`✅ Transaction confirmed for: "${description}"`);
+  for (let i = 0; i < 3; i++) { // Try up to 3 times
+    try {
+      console.log(`\nSubmitting transaction for: ${description}... (Attempt ${i + 1})`);
+      const tx = await txPromise;
+      console.log(`... Transaction Hash: ${tx.hash}`);
+      console.log(`⏳ Waiting for confirmation...`);
+      await tx.wait(1);
+      console.log(`✅ Transaction confirmed for: "${description}"`);
+      return; // Success, exit the loop
+    } catch (error) {
+      if (error.message.toLowerCase().includes("nonce too low")) {
+        console.warn(`⚠️ Nonce issue for "${description}". Retrying in 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
+      } else {
+        // For any other error, fail immediately
+        console.error(`❌ Transaction failed for "${description}":`, error.message);
+        throw error;
+      }
+    }
+  }
+  throw new Error(`Failed to execute transaction for "${description}" after 3 attempts.`);
 }
+
 
 async function main() {
     console.log("🔄 Initializing deployment...");
@@ -69,7 +85,7 @@ async function main() {
     await executeTransaction(portfolio.addSkillCategory("blockchain", ['Ethereum', 'Polygon', 'Smart Contracts', 'Solidity', 'Web3.js', 'Ethers.js', 'DeFi', 'Cryptographic Verification', 'Blockchain Security']), "Add Skill: Blockchain");
     await executeTransaction(portfolio.addSkillCategory("other", ['REST APIs', 'Blockchain Development', 'Cryptography', 'Code Verification Systems']), "Add Skill: Other");
 
-    // Populate experience as an array of strings
+    // Populate experience
     await executeTransaction(portfolio.addExperience('Application Developer Intern', 'Precistat IT Solutions', 'Jun 2022 -- Jul 2022', [
      'Automated and secured Python data workflows for a US tax consulting firm, applying robust cryptographic data protection and requirements-based error handling to ensure client confidentiality. This work reduced manual workflow time by 30% and significantly improved operational efficiency.',
      'Developed and maintained internal tools in Python, focusing on writing clean, well-tested code that integrated seamlessly with existing accounting systems to streamline daily operations.',
@@ -88,7 +104,7 @@ async function main() {
      'Contributed to the design of course modules that emphasized secure coding, modular design, and robust integration testing, enhancing the curriculum to meet modern engineering standards.'
     ]), "Add Experience: UCO Teaching Assistant");
  
-    // Populate projects with array descriptions
+    // Populate projects
     const projects = [
         {
          title: 'Blockchain-Verified Portfolio Application with Comprehensive Codebase Integrity System',
@@ -173,21 +189,9 @@ async function main() {
     ]), "Add Achievement: Honor Roll");
 
     // Populate academic focus areas
-    await executeTransaction(portfolio.addAcademicFocus(
-     'Information Security',
-     'Specialized Focus on Cybersecurity, Data Protection, and Secure Systems Design',
-     'Security'
-    ), "Add Focus: Information Security");
-    await executeTransaction(portfolio.addAcademicFocus(
-     'Computer Science',
-     'Advanced Algorithms, Software Engineering, Web and Cloud Development',
-     'Skills'
-    ), "Add Focus: Computer Science");
-    await executeTransaction(portfolio.addAcademicFocus(
-     'Research & Development',
-     'Academic Research in Security Protocols and System Architecture',
-     'Projects'
-    ), "Add Focus: Research & Development");
+    await executeTransaction(portfolio.addAcademicFocus('Information Security', 'Specialized Focus on Cybersecurity, Data Protection, and Secure Systems Design', 'Security'), "Add Focus: Information Security");
+    await executeTransaction(portfolio.addAcademicFocus('Computer Science', 'Advanced Algorithms, Software Engineering, Web and Cloud Development', 'Skills'), "Add Focus: Computer Science");
+    await executeTransaction(portfolio.addAcademicFocus('Research & Development', 'Academic Research in Security Protocols and System Architecture', 'Projects'), "Add Focus: Research & Development");
 
     console.log("\n" + "=".repeat(80));
     console.log("🎉 DEPLOYMENT AND DATA POPULATION COMPLETE");
