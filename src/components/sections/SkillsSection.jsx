@@ -1,6 +1,5 @@
 import React, { memo } from 'react';
-import { Icon } from '../common/Icon';
-import { getSkillIcon } from '../../utils/IconUtils';
+import { Icon, getSkillIcon } from '../common/Icon';
 import { camelCaseToSpaces, capitalize } from '../../utils/helpers';
 
 /**
