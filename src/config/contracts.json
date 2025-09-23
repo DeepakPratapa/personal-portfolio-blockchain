@@ -1,12 +1,10 @@
 {
-  "portfolioContract": "0x4F7c342fE7573f4Aaa27C94E433d5720d9Ef56E8",
-  "verificationContract": "0x09339568f91A993c06d30bfB81dDfBFA0e6b396b",
+  "portfolioContract": "0x16EFf632aBc908493EA0050c41ce681a42D0E98d",
+  "verificationContract": "0xFDcCD3C0a7A07d5E0cE8Efec0517D59D306577dd",
   "walletAddress": "0xe7599618A48F1393D29B8B1a6772304336B470e5",
   "network": "polygon",
   "chainId": 137,
   "rpcUrl": "https://polygon-rpc.com",
   "explorerUrl": "https://polygonscan.com",
-  "explorerApiUrl": "https://api.etherscan.io/v2/api?chainid=137",
-  "lastUpdated": "2025-09-23T19:29:42Z",
-  "deploymentTimestamp": 1758655782
+  "lastUpdated": "2025-09-23T19:51:51Z"
 }
