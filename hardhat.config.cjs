@@ -144,13 +144,13 @@ const config = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY, // Single key for all networks (Etherscan v2)
     customChains: [
-      {
-        network: "polygon",
-        chainId: 137,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api",
-          browserURL: "https://polygonscan.com"
-        }
+     {
+      network: "polygon",
+      chainId: 137,
+      urls: {
+        apiURL: "https://api.polygonscan.com/api",
+        browserURL: "https://polygonscan.com"
+      }
       },
 
     ]
