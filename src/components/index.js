@@ -13,5 +13,6 @@ export { CertificationsSection, ResearchSection, AchievementsSection } from './s
 
 export { default as ProjectCaseStudy } from './projects/ProjectCaseStudyComponent';
 
-export { Icon, getSkillIcon } from './common/Icon';
+export { Icon} from './common/Icon';
+export {getSkillIcon} from '../utils/IconUtils';
 export { SanitizedText, SanitizedList } from './common/SanitizedComponents';

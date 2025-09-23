@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, useCallback } from 'react';
 import { Icon } from '../common/Icon';
 import { NAVIGATION_SECTIONS } from '../../utils/constants';
 import { capitalize } from '../../utils/helpers';
@@ -22,11 +22,13 @@ const NavBar = memo(({ onNavClick, onSidebarToggle }) => {
     }
   };
 
-  const toggleSidebar = () => {
-    const newState = !isSidebarOpen;
-    setIsSidebarOpen(newState);
-    onSidebarToggle?.(newState); // Notify parent component
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen(prev => {
+      const newState = !prev;
+      onSidebarToggle?.(newState); // Notify parent component
+      return newState;
+    });
+  }, [onSidebarToggle]);
 
   // Close sidebar when clicking outside
   useEffect(() => {
@@ -59,7 +61,7 @@ const NavBar = memo(({ onNavClick, onSidebarToggle }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [toggleSidebar]);
 
   return (
     <>

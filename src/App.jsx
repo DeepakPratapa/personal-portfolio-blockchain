@@ -25,7 +25,8 @@ import {
 } from './components';
 
 // Error Boundary
-import ErrorBoundary, { SectionErrorBoundary } from './components/common/ErrorBoundary';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import { SectionErrorBoundary } from './utils/ErrorBoundaryUtils';
 
 // Utils
 import { smoothScrollTo } from './utils/helpers';

@@ -14,34 +14,40 @@ async function main() {
     console.log("🌐 Network:", network.name, "Chain ID:", network.chainId);
     console.log("💰 Account balance:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "ETH");
 
-    // Deploy Portfolio Contract
-    console.log("\n📄 Deploying Portfolio contract...");
-    console.log("⏳ Getting contract factory...");
-    const Portfolio = await ethers.getContractFactory("Portfolio");
-    
-    console.log("⏳ Submitting deployment transaction...");
-    const portfolio = await Portfolio.deploy(
-        "Deepak Balaji Pratapa",
-        "Full Stack Developer | Cloud Solutions | Cybersecurity Engineer",
-        "A recent Computer Science graduate with a strong foundation in both software engineering and cybersecurity. Proven ability to design and build secure, scalable full-stack applications using React, Node.js, and Python. Experienced in cloud-native development with AWS and Firebase, implementing robust CI/CD pipelines, and applying industry-standard security tools for vulnerability assessment, threat detection, and incident response. Eager to apply a blend of software development and security expertise to build and protect innovative digital solutions.",
-        "+1-(405)856-9454",
-        "deepakpratapa2@gmail.com",
-        "https://www.linkedin.com/in/deepak-pratapa-b6316b178",
-        "https://github.com/DeepakPratapa"
-    );
-    await portfolio.waitForDeployment();
-    const portfolioAddress = await portfolio.getAddress();
+  // Nonce management
+  let nonce = await deployer.getTransactionCount();
 
-    console.log("✅ Portfolio deployed to:", portfolioAddress);
+  // Deploy Portfolio Contract
+  console.log("\n📄 Deploying Portfolio contract...");
+  console.log("⏳ Getting contract factory...");
+  const Portfolio = await ethers.getContractFactory("Portfolio");
 
-    // Deploy ProjectVerification Contract
-    console.log("\n� Deploying ProjectVerification contract...");
-    const ProjectVerification = await ethers.getContractFactory("ProjectVerification");
-    const projectVerification = await ProjectVerification.deploy();
-    await projectVerification.waitForDeployment();
-    const verificationAddress = await projectVerification.getAddress();
+  console.log("⏳ Submitting deployment transaction...");
+  const portfolio = await Portfolio.deploy(
+    "Deepak Balaji Pratapa",
+    "Full Stack Developer | Cloud Solutions | Cybersecurity Engineer",
+    "A recent Computer Science graduate with a strong foundation in both software engineering and cybersecurity. Proven ability to design and build secure, scalable full-stack applications using React, Node.js, and Python. Experienced in cloud-native development with AWS and Firebase, implementing robust CI/CD pipelines, and applying industry-standard security tools for vulnerability assessment, threat detection, and incident response. Eager to apply a blend of software development and security expertise to build and protect innovative digital solutions.",
+    "+1-(405)856-9454",
+    "deepakpratapa2@gmail.com",
+    "https://www.linkedin.com/in/deepak-pratapa-b6316b178",
+    "https://github.com/DeepakPratapa",
+    { nonce }
+  );
+  await portfolio.waitForDeployment();
+  const portfolioAddress = await portfolio.getAddress();
+  nonce++;
 
-    console.log("✅ ProjectVerification deployed to:", verificationAddress);
+  console.log("✅ Portfolio deployed to:", portfolioAddress);
+
+  // Deploy ProjectVerification Contract
+  console.log("\n� Deploying ProjectVerification contract...");
+  const ProjectVerification = await ethers.getContractFactory("ProjectVerification");
+  const projectVerification = await ProjectVerification.deploy({ nonce });
+  await projectVerification.waitForDeployment();
+  const verificationAddress = await projectVerification.getAddress();
+  nonce++;
+
+  console.log("✅ ProjectVerification deployed to:", verificationAddress);
 
     // Output deployment summary
     console.log("\n" + "=".repeat(80));
