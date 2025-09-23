@@ -24,7 +24,7 @@ import {
   ProjectCaseStudy
 } from './components';
 
-// Error Boundary
+// Custom Boundary
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { SectionErrorBoundary } from './utils/ErrorBoundaryUtils';
 
