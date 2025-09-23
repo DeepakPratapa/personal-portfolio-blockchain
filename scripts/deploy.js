@@ -14,8 +14,6 @@ async function main() {
     console.log("🌐 Network:", network.name, "Chain ID:", network.chainId);
     console.log("💰 Account balance:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "ETH");
 
-  // Nonce management
-  let nonce = await ethers.provider.getTransactionCount(deployer.address);
 
   // Deploy Portfolio Contract
   console.log("\n📄 Deploying Portfolio contract...");
@@ -30,22 +28,19 @@ async function main() {
     "+1-(405)856-9454",
     "deepakpratapa2@gmail.com",
     "https://www.linkedin.com/in/deepak-pratapa-b6316b178",
-    "https://github.com/DeepakPratapa",
-    { nonce }
+    "https://github.com/DeepakPratapa"
   );
   await portfolio.waitForDeployment();
   const portfolioAddress = await portfolio.getAddress();
-  nonce++;
 
   console.log("✅ Portfolio deployed to:", portfolioAddress);
 
   // Deploy ProjectVerification Contract
   console.log("\n� Deploying ProjectVerification contract...");
   const ProjectVerification = await ethers.getContractFactory("ProjectVerification");
-  const projectVerification = await ProjectVerification.deploy({ nonce });
+  const projectVerification = await ProjectVerification.deploy();
   await projectVerification.waitForDeployment();
   const verificationAddress = await projectVerification.getAddress();
-  nonce++;
 
   console.log("✅ ProjectVerification deployed to:", verificationAddress);
 
