@@ -1,6 +1,7 @@
 const { HardhatUserConfig } = require("hardhat/config");
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
+require('hardhat-contract-sizer');
 
 // Validate private key format
 function validatePrivateKey(key) {
@@ -53,22 +54,23 @@ function validateEnvConfig() {
 
 // Get Polygon mainnet configuration
 function getPolygonConfig() {
-  const infuraApiKey = process.env.INFURA_API_KEY;
-  const polygonRpcUrl = infuraApiKey 
-    ? `https://polygon-mainnet.infura.io/v3/${infuraApiKey}`
-    : process.env.POLYGON_RPC_URL;
-    
-  return {
-    url: polygonRpcUrl || "https://polygon-rpc.com",
-    accounts: getPrivateKey(),
-    chainId: 137,
-    gasPrice: 30000000000, // 30 gwei
-    confirmations: 2,
-    timeoutBlocks: 200,
-    skipDryRun: true
-  };
+  const infuraApiKey = process.env.INFURA_API_KEY;
+  const polygonRpcUrl = infuraApiKey 
+    ? `https://polygon-mainnet.infura.io/v3/${infuraApiKey}`
+    : process.env.POLYGON_RPC_URL;
+    
+  return {
+    url: polygonRpcUrl || "https://polygon-rpc.com",
+    accounts: getPrivateKey(),
+    chainId: 137,
+    // --- THIS IS THE FIX ---
+    gasPrice: 'auto', // Let Hardhat determine the best gas price
+    // -----------------------
+    confirmations: 2,
+    timeoutBlocks: 200,
+    skipDryRun: true
+  };
 }
-
 // Get Mumbai testnet configuration
 function getMumbaiConfig() {
   const infuraApiKey = process.env.INFURA_API_KEY;
