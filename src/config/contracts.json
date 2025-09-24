@@ -1,10 +1,10 @@
 {
-  "portfolioContract": "0xb01b673c79987506B269F665B613F96d249954Bc",
-  "verificationContract": "0x99625EBeDc09e41dB83feeC828147Ea22Dddfd84",
+  "portfolioContract": "0x5c903127b2A3c92E451A4fAd3b4Dd409862D7677",
+  "verificationContract": "0xF0C7b8b267002036706A59e9be24edB06284ab6c",
   "walletAddress": "0xe7599618A48F1393D29B8B1a6772304336B470e5",
   "network": "polygon",
   "chainId": 137,
   "rpcUrl": "https://polygon-rpc.com",
   "explorerUrl": "https://polygonscan.com",
-  "lastUpdated": "2025-09-23T21:55:20Z"
+  "lastUpdated": "2025-09-24T01:19:41Z"
 }
