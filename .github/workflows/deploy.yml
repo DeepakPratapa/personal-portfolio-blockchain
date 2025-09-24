@@ -232,6 +232,8 @@ jobs:
 
       - name: Build Frontend
         env:
+          VITE_CONTRACT_ADDRESS: ${{ needs.deploy-contracts.outputs.portfolio-address }}
+          VITE_RPC_URL: https://polygon-rpc.com
           VITE_PORTFOLIO_ADDRESS: ${{ needs.deploy-contracts.outputs.portfolio-address }}
           VITE_VERIFICATION_ADDRESS: ${{ needs.deploy-contracts.outputs.verification-address }}
           VITE_WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
