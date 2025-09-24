@@ -237,6 +237,7 @@ jobs:
           VITE_PORTFOLIO_ADDRESS: ${{ needs.deploy-contracts.outputs.portfolio-address }}
           VITE_VERIFICATION_ADDRESS: ${{ needs.deploy-contracts.outputs.verification-address }}
           VITE_WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
+          VITE_OWNER_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
           CI: false # Treat warnings as non-breaking for the build
         run: |
           echo "🏗️ Building frontend..."
