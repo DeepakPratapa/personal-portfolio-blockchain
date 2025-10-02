@@ -23,6 +23,7 @@ import {
   AchievementsSection,
   ProjectCaseStudy
 } from './components';
+import { PageSkeleton } from './components/common/Skeleton';
 
 // Custom Boundary
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -53,7 +54,7 @@ const App = () => {
   // State management
   const [selectedProject, setSelectedProject] = useState(null);
   const [pendingScroll, setPendingScroll] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Custom hooks
   const { data, loading, isDataVerified, error } = usePortfolioData();
@@ -121,7 +122,7 @@ const App = () => {
     return (
       <div className="font-sans antialiased text-gray-200 bg-gray-950 min-h-screen">
         <GlobalStyles />
-        <LoadingScreen />
+        <PageSkeleton />
       </div>
     );
   }

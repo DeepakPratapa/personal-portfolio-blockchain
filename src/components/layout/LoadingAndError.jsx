@@ -6,12 +6,12 @@ import { Icon } from '../common/Icon';
  * @param {string} message - Loading message to display
  * @returns {JSX.Element} - Loading component
  */
-const LoadingScreen = memo(({ message = "Loading data from the blockchain..." }) => (
-  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white">
-    <Icon name="Loading" />
-    <p className="mt-4 text-gray-400">{message}</p>
-  </div>
-));
+// const LoadingScreen = memo(({ message = "Loading data from the blockchain..." }) => (
+//   <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white">
+//     <Icon name="Loading" />
+//     <p className="mt-4 text-gray-400">{message}</p>
+//   </div>
+// ));
 
 /**
  * Error component for displaying error messages
@@ -27,4 +27,4 @@ const ErrorScreen = memo(({ message = "Failed to load portfolio data. Please che
 LoadingScreen.displayName = 'LoadingScreen';
 ErrorScreen.displayName = 'ErrorScreen';
 
-export { LoadingScreen, ErrorScreen };
+export { ErrorScreen };
