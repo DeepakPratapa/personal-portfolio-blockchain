@@ -11,7 +11,6 @@ import {
   NavBar,
   Header,
   Footer,
-  LoadingScreen,
   ErrorScreen,
   SummarySection,
   ExperienceSection,

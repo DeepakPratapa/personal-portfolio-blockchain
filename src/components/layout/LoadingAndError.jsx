@@ -24,7 +24,7 @@ const ErrorScreen = memo(({ message = "Failed to load portfolio data. Please che
   </div>
 ));
 
-LoadingScreen.displayName = 'LoadingScreen';
+// LoadingScreen.displayName = 'LoadingScreen';
 ErrorScreen.displayName = 'ErrorScreen';
 
 export { ErrorScreen };
