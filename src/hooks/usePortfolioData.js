@@ -5,6 +5,12 @@ import ProjectVerificationContract from "../../artifacts/contracts/ProjectVerifi
 import { BLOCKCHAIN_CONFIG, SKILL_CATEGORIES } from '../utils/constants';
 import { CONTRACT_ADDRESSES } from '../utils/contractConstants';
 import { getContractAddress } from '../utils/envValidation';
+import { 
+  createResilientProvider, 
+  retryContractCall,
+  contractExists,
+  getNetworkInfo 
+} from '../utils/providerUtils';
 
 /**
  * Custom hook for computing local data hash for verification
@@ -113,24 +119,39 @@ export const usePortfolioData = () => {
       setLoading(true);
       setError(null);
 
-  // Use the portfolio contract address from constants
-  const contractAddress = CONTRACT_ADDRESSES.PORTFOLIO;
-      const provider = new ethers.JsonRpcProvider(BLOCKCHAIN_CONFIG.RPC_URL);
+      // Use the portfolio contract address from constants
+      const contractAddress = CONTRACT_ADDRESSES.PORTFOLIO;
+      
+      // Create resilient provider with automatic fallback
+      const provider = await createResilientProvider();
+      
+      // Verify contract exists
+      const exists = await contractExists(provider, contractAddress);
+      if (!exists) {
+        throw new Error(
+          `No contract found at address ${contractAddress}. Please verify the contract is deployed.`
+        );
+      }
+      
+      // Get network info for debugging
+      const networkInfo = await getNetworkInfo(provider);
+      console.log('📡 Network Info:', networkInfo);
+      
       const contract = new ethers.Contract(contractAddress, PortfolioContract.abi, provider);
 
-      // Fetch basic information
-      const fetchedName = await contract.name();
-      const fetchedTitle = await contract.title();
-      const fetchedSummary = await contract.summary();
-      const contactData = await contract.getContact();
+      // Fetch basic information with retry
+      const fetchedName = await retryContractCall(() => contract.name());
+      const fetchedTitle = await retryContractCall(() => contract.title());
+      const fetchedSummary = await retryContractCall(() => contract.summary());
+      const contactData = await retryContractCall(() => contract.getContact());
 
-      // Fetch skills by category
+      // Fetch skills by category with retry
       const fetchedSkills = {};
       for (const category of SKILL_CATEGORIES) {
-        fetchedSkills[category] = await contract.getSkills(category);
+        fetchedSkills[category] = await retryContractCall(() => contract.getSkills(category));
       }
 
-      // Fetch all other data
+      // Fetch all other data with retry
       const [
         fetchedExperience,
         fetchedProjects,
@@ -140,13 +161,13 @@ export const usePortfolioData = () => {
         fetchedAchievements,
         fetchedAcademicFocus
       ] = await Promise.all([
-        contract.getExperiences(),
-        contract.getProjects(),
-        contract.getResearchPapers(),
-        contract.getCertifications(),
-        contract.getEducationHistory(),
-        contract.getAchievements(),
-        contract.getAcademicFocusAreas()
+        retryContractCall(() => contract.getExperiences()),
+        retryContractCall(() => contract.getProjects()),
+        retryContractCall(() => contract.getResearchPapers()),
+        retryContractCall(() => contract.getCertifications()),
+        retryContractCall(() => contract.getEducationHistory()),
+        retryContractCall(() => contract.getAchievements()),
+        retryContractCall(() => contract.getAcademicFocusAreas())
       ]);
 
       // Format the data
@@ -201,8 +222,8 @@ export const usePortfolioData = () => {
       
       setData(formattedData);
 
-      // Verify data integrity
-      const hashFromBlockchain = await contract.getDataHash();
+      // Verify data integrity with retry
+      const hashFromBlockchain = await retryContractCall(() => contract.getDataHash());
       const localHash = computeLocalDataHash(formattedData);
       const isVerified = localHash && localHash.toLowerCase() === hashFromBlockchain.toLowerCase();
       setIsDataVerified(isVerified);

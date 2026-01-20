@@ -25,6 +25,9 @@ dist-ssr
 
 node_modules
 .env
+.env.production
+.env.local
+.env.*.local
 
 # Hardhat files
 /cache
