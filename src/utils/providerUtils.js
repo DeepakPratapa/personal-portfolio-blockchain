@@ -2,44 +2,33 @@ import { ethers } from "ethers";
 import { BLOCKCHAIN_CONFIG } from './constants';
 
 /**
- * Creates a resilient RPC provider with fallback support
+ * Creates a resilient RPC provider - using single stable endpoint
  * @returns {Promise<ethers.JsonRpcProvider>} Provider instance
  */
 export const createResilientProvider = async () => {
-  const rpcUrls = [
-    BLOCKCHAIN_CONFIG.RPC_URL,
-    ...(BLOCKCHAIN_CONFIG.RPC_FALLBACK_URLS || [])
-  ];
+  // Use single reliable RPC endpoint
+  const rpcUrl = 'https://polygon-bor-rpc.publicnode.com';
   
-  let lastError = null;
-  
-  for (const rpcUrl of rpcUrls) {
-    try {
-      const provider = new ethers.JsonRpcProvider(rpcUrl, undefined, {
-        staticNetwork: true,
-        batchMaxCount: 1,
-        polling: false
-      });
-      
-      // Test the connection with a timeout
-      const blockNumberPromise = provider.getBlockNumber();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('RPC timeout after 5s')), 5000)
-      );
-      
-      await Promise.race([blockNumberPromise, timeoutPromise]);
-      
-      console.log(`✅ Connected to RPC: ${rpcUrl}`);
-      return provider;
-    } catch (err) {
-      console.warn(`❌ Failed to connect to ${rpcUrl}:`, err.message);
-      lastError = err;
-    }
+  try {
+    const provider = new ethers.JsonRpcProvider(rpcUrl, undefined, {
+      staticNetwork: true,
+      batchMaxCount: 1,
+      polling: false
+    });
+    
+    // Test the connection with a timeout
+    const blockNumberPromise = provider.getBlockNumber();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('RPC timeout after 5s')), 5000)
+    );
+    
+    await Promise.race([blockNumberPromise, timeoutPromise]);
+    
+    console.log(`✅ Connected to RPC: ${rpcUrl}`);
+    return provider;
+  } catch (err) {
+    throw new Error(`Failed to connect to RPC: ${err.message}`);
   }
-  
-  throw new Error(
-    `Failed to connect to any RPC endpoint. Last error: ${lastError?.message || 'Unknown error'}`
-  );
 };
 
 /**
