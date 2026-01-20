@@ -24,7 +24,7 @@ export const createResilientProvider = async () => {
     
     await Promise.race([blockNumberPromise, timeoutPromise]);
     
-    console.log(`✅ Connected to RPC: ${rpcUrl}`);
+    // Silently connected
     return provider;
   } catch (err) {
     throw new Error(`Failed to connect to RPC: ${err.message}`);

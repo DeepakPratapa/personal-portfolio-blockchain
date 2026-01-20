@@ -10,9 +10,6 @@ import { GlassCard, CategoryBadge } from '../common/ReusableComponents';
  * @returns {JSX.Element} - Certifications section component
  */
 const CertificationsSection = memo(({ data, sectionRef }) => {
-  // Debug logging
-  console.log('Certifications data:', data.certifications);
-  
   // Helper function to categorize certifications
   const getCertificationType = (name, issuer) => {
     const text = `${name} ${issuer}`.toLowerCase();
@@ -129,7 +126,6 @@ const CertificationsSection = memo(({ data, sectionRef }) => {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('Certificate link clicked:', cert.link);
                             window.open(cert.link, '_blank', 'noopener,noreferrer');
                           }}
                           className="relative z-30 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400/10 to-purple-500/10 text-cyan-300 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-all duration-300 hover:bg-cyan-400/5 text-sm font-medium cursor-pointer active:scale-95 active:transition-transform active:duration-150"
@@ -159,9 +155,6 @@ const CertificationsSection = memo(({ data, sectionRef }) => {
  * @returns {JSX.Element} - Research section component
  */
 const ResearchSection = memo(({ data, sectionRef }) => {
-  // Debug logging
-  console.log('Research data:', data.research);
-  
   return (
   <section 
     id="research" 
@@ -232,7 +225,6 @@ const ResearchSection = memo(({ data, sectionRef }) => {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('Research link clicked:', research.link);
                         window.open(research.link, '_blank', 'noopener,noreferrer');
                       }}
                       className="relative z-30 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-400/10 to-cyan-400/10 text-green-300 rounded-lg border border-green-400/20 hover:border-green-400/40 transition-all duration-300 hover:bg-green-400/5 text-sm font-medium cursor-pointer active:scale-95 active:transition-transform active:duration-150"

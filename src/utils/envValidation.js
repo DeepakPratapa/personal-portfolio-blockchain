@@ -9,18 +9,6 @@ const REQUIRED_ENV_VARS = {
     required: true,
     validator: (value) => /^0x[a-fA-F0-9]{40}$/.test(value),
     errorMessage: 'Must be a valid Ethereum address (0x + 40 hex characters)'
-  },
-  'VITE_RPC_URL': {
-    required: true,
-    validator: (value) => {
-      try {
-        const url = new URL(value);
-        return ['http:', 'https:', 'ws:', 'wss:'].includes(url.protocol);
-      } catch {
-        return false;
-      }
-    },
-    errorMessage: 'Must be a valid RPC URL (http/https/ws/wss protocol)'
   }
 };
 

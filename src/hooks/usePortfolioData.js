@@ -72,8 +72,7 @@ export const useDataHashComputation = () => {
         const encodedData = ethers.AbiCoder.defaultAbiCoder().encode(solidityTypes, dataToEncode);
         return ethers.keccak256(encodedData);
     } catch (error) {
-        console.error("ABI encoding error:", error);
-        console.log("Data to encode:", dataToEncode);
+        console.error("Hash computation failed:", error.message);
         return null;
     }
   }, []);
@@ -132,10 +131,6 @@ export const usePortfolioData = () => {
           `No contract found at address ${contractAddress}. Please verify the contract is deployed.`
         );
       }
-      
-      // Get network info for debugging
-      const networkInfo = await getNetworkInfo(provider);
-      console.log('📡 Network Info:', networkInfo);
       
       const contract = new ethers.Contract(contractAddress, PortfolioContract.abi, provider);
 
@@ -228,12 +223,11 @@ export const usePortfolioData = () => {
       const isVerified = localHash && localHash.toLowerCase() === hashFromBlockchain.toLowerCase();
       setIsDataVerified(isVerified);
 
-      console.log("Blockchain Hash:", hashFromBlockchain);
-      console.log("Computed Hash:", localHash);
-      if (isVerified) {
-        console.log("Data integrity successfully verified by blockchain hash.");
-      } else {
-        console.warn("Data integrity check failed: Computed hash does not match the blockchain hash.");
+      // Log verification only in development
+      if (import.meta.env.DEV) {
+        console.log("Blockchain Hash:", hashFromBlockchain);
+        console.log("Computed Hash:", localHash);
+        console.log(isVerified ? "✅ Data verified" : "⚠️ Verification failed");
       }
 
     } catch (error) {
