@@ -4,6 +4,9 @@
   
   # Build command
   command = "npm run build"
+  
+  # Ensure clean builds without cached Ankr RPC
+  ignore = "false"
 
 [build.environment]
   # Node version
